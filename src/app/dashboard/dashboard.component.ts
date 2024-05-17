@@ -15,7 +15,7 @@ export class DashboardComponent implements OnInit {
   constructor(private apiService: ApiserviceService, private router: Router) {}
 
   ngOnInit(): void {
-    this.isLoggedIn = !!localStorage.getItem('user');
+    this.isLoggedIn = !!localStorage.getItem('userId');
     this.fetchAvailableProducts();
   }
 

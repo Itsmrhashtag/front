@@ -1,6 +1,7 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ApiserviceService } from '../services/apiservice.service';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-unsold-product',
@@ -10,8 +11,14 @@ import { ApiserviceService } from '../services/apiservice.service';
 export class UnsoldProductComponent implements OnInit, OnDestroy {
   products: any[] = [];
   private subscriptions: Subscription = new Subscription();
-
-  constructor(private apiService: ApiserviceService) {}
+  private isBrowser: boolean;
+  userId: any;
+  constructor(
+    private apiService: ApiserviceService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   ngOnInit(): void {
     this.fetchSoldProducts();
@@ -22,26 +29,31 @@ export class UnsoldProductComponent implements OnInit, OnDestroy {
   }
 
   fetchSoldProducts(): void {
-    try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      if (!user || !user.id) {
-        console.error('User not logged in or invalid user data');
-        return;
-      }
-
-      const fetchSub = this.apiService.getUnSoldProducts(user.id).subscribe(response => {
-        if (response.success) {
-          this.products = response.products;
-        } else {
-          console.error('Failed to fetch sold products');
+   
+    if (this.isBrowser) {
+      try {
+        this.userId = localStorage.getItem('userId');
+        if (!this.userId) {
+          console.error('User not logged in or invalid user data');
+          return;
         }
-      }, error => {
-        console.error('Error fetching sold products', error);
-      });
 
-      this.subscriptions.add(fetchSub);
-    } catch (error) {
-      console.error('Error parsing user data from localStorage', error);
+        const fetchSub = this.apiService.getUnSoldProducts(this.userId).subscribe(response => {
+          if (response.success) {
+            this.products = response.products;
+          } else {
+            console.error('Failed to fetch sold products');
+          }
+        }, error => {
+          console.error('Error fetching sold products', error);
+        });
+
+        this.subscriptions.add(fetchSub);
+      } catch (error) {
+        console.error('Error accessing user data from local storage', error);
+      }
+    } else {
+      console.error('localStorage is not available in this environment');
     }
   }
 }

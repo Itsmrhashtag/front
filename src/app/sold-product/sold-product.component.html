@@ -7,7 +7,6 @@
       <p>Description: {{ product.description }}</p>
       <p>Sold Date: {{ product.endDate | date:'medium' }}</p>
       <p>Winner Buyer: {{ product.buyer.username }}</p>
-      <p>Winning Amount: {{ product.offers.amount }}</p>
     </div>
   </div>
-  
+  <!-- Math.max(...this.product.offers.map(offer => offer.amount)); -->

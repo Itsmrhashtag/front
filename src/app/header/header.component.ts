@@ -15,7 +15,10 @@ export class HeaderComponent implements OnInit {
   constructor(private router: Router) { }
 
   logout(): void {
-    localStorage.removeItem('user');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('username');
+    localStorage.removeItem('walletAmount');
+    localStorage.removeItem('userDetail');
     this.isLoggedIn = false;
     this.router.navigate(['/login']);
   }
@@ -30,16 +33,18 @@ export class HeaderComponent implements OnInit {
   }
 
   loadUserData(): void {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (user && user.username && user.walletAmount !== undefined) {
-      this.username = user.username;
-      this.walletAmount = user.walletAmount;
+    const username = localStorage.getItem('username');
+    const walletAmount = localStorage.getItem('walletAmount');
+
+    if (username && walletAmount !== null) {
+      this.username = username;
+      this.walletAmount = parseFloat(walletAmount);
     }
   }
 
   ngOnInit() {
     if (typeof localStorage !== 'undefined') {
-      this.isLoggedIn = !!localStorage.getItem('user');
+      this.isLoggedIn = !!localStorage.getItem('userId');
       this.loadUserData();
     }
   }

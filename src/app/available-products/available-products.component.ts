@@ -1,63 +1,60 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ApiserviceService } from '../services/apiservice.service';
-import { Subscription } from 'rxjs';
-import { Router } from '@angular/router';
+import { Subscription, interval, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-available-products',
   templateUrl: './available-products.component.html',
-  styleUrl: './available-products.component.css'
+  styleUrls: ['./available-products.component.css']  
 })
 export class AvailableProductsComponent implements OnInit, OnDestroy {
   products: any[] = [];
-  private subscriptions: Subscription = new Subscription();
+  private destroy$ = new Subject<void>();
 
-  constructor(private apiService: ApiserviceService,private router: Router) {}
+  constructor(private productService: ApiserviceService) { }
 
   ngOnInit(): void {
-    this.fetchProducts();
+    this.productService.getAvailableProducts().subscribe(
+      data => {
+        if (data.success) {
+          this.products = data.products;
+          this.startTimers();
+        }
+      },
+      error => {
+        console.error('Error fetching products:', error);
+      }
+    );
+    setInterval(() => {
+      window.location.reload();
+    }, 30000); 
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
-  }
-  viewProductDetail(productId: number): void {
-    this.router.navigate(['/product', productId]);
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  fetchProducts(): void {
-    const fetchSub = this.apiService.getAvailableProducts().subscribe(response => {
-      if (response.success) {
-        this.products = response.products;
-        this.products.forEach(product => {
-          this.updateTimer(product);
-          const intervalId = setInterval(() => this.updateTimer(product), 1000);
-          this.subscriptions.add({ unsubscribe: () => clearInterval(intervalId) });
-        });
-      } else {
-        console.error('Failed to fetch products');
-      }
-    }, error => {
-      console.error('Error fetching products', error);
+  startTimers(): void {
+    interval(1000).pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.products.forEach(product => {
+        this.updateTimer(product);
+      });
     });
-
-    this.subscriptions.add(fetchSub);
   }
 
-  updateTimer(product: any): void {
+  updateTimer(product: { endDate: number, timeLeft: string }): void {
     const now = new Date().getTime();
-    const distance = parseInt(product.endDate) - now;
+    const distance = product.endDate - now;
 
     if (distance < 0) {
-      product.timeLeft = 'EXPIRED';
-      return;
+      product.timeLeft = 'Expired';
+    } else {
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+      product.timeLeft = `${hours}h ${minutes}m ${seconds}s`;
     }
-
-    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-    product.timeLeft = `${days}d ${hours}h ${minutes}m ${seconds}s`;
   }
 }

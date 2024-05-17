@@ -13,9 +13,15 @@ productData = { name: '', description: '', price: 0, endDate: '' };
   constructor(private apiService: ApiserviceService) { }
 
   onSubmit() {
-    const seller = JSON.parse(localStorage.getItem('user') || '{}');
-    if (!seller.id) {
-      this.responseMessage = 'User is not logged in.';
+    const userIdString = localStorage.getItem('userId');
+    if (userIdString===null) {
+      this.responseMessage=='User not logged in';
+      return;
+    }
+
+    const userId = Number(userIdString);
+    if (isNaN(userId)) {
+      this.responseMessage==='Invalid user ID';
       return;
     }
 
@@ -23,7 +29,7 @@ productData = { name: '', description: '', price: 0, endDate: '' };
     const product = {
       ...this.productData,
       endDate:  endDateEpoch,
-      sellerId: seller.id
+      sellerId: userId
     };
 
     this.apiService.addProduct(product).subscribe(response => {

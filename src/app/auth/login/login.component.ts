@@ -5,14 +5,14 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  styleUrls: ['./login.component.css']  // Corrected the typo from styleUrl to styleUrls
 })
 export class LoginComponent {
   loginData = { username: '', password: '' };
   responseMessage: string = '';
   isSuccess: boolean = false;
 
-  constructor(private apiService: ApiserviceService,private router: Router) { }
+  constructor(private apiService: ApiserviceService, private router: Router) { }
 
   onSubmit() {
     this.apiService.loginUser(this.loginData).subscribe(response => {
@@ -20,7 +20,11 @@ export class LoginComponent {
       this.responseMessage = response.responseMessage;
       this.isSuccess = response.success;
       if (response.success) {
-        localStorage.setItem('user', JSON.stringify(response.user));
+        const { id, username, walletAmount } = response.user;
+        localStorage.setItem('userId', id);
+        localStorage.setItem('username', username);
+        localStorage.setItem('walletAmount', walletAmount);
+
         this.router.navigate(['/available-products']);
       }
     }, error => {

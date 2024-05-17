@@ -10,6 +10,7 @@
         <p><strong>Status:</strong> {{ product.status }}</p>
         <p><strong>Created Date:</strong> {{ product.createdDate | date:'medium' }}</p>
         <p><strong>End Date:</strong> {{ product.endDate | date:'medium' }}</p>
+        <!-- <p><strong>Time Left:</strong> {{ timeLeft }}</p> -->
         <div *ngIf="product.seller">
           <h3>Seller Details:</h3>
           <p><strong>Username:</strong> {{ product.seller.username }}</p>
